@@ -14,7 +14,7 @@
 }
 
 #lifes {
-	color: red;
+	min-width: 150px;
 }
 
 .navbar {
