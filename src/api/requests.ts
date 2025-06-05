@@ -22,7 +22,7 @@ export async function fetchQuestions():Promise<Question> {
 	
 	if(response_code === 5) {
 		setTimeout(() => {
-			return fetchOneQuestion(token);
+			return fetchQuestions(token);
 		}, 5000);
 	} else {
 		return results;

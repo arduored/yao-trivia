@@ -14,9 +14,13 @@ export function useQuestions() {
 
 	useEffect(() => {
 		if(!questions) return;
-		setIterator(questions.values())
-		
+		setIterator(questions.values());
 	}, [questions])
+
+	useEffect(() => {
+		if(!iterator) return;
+		setQuestion(iterator.next().value)
+	}, [iterator])
 
 
 	function refresh() {

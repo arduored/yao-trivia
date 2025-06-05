@@ -52,6 +52,7 @@ export default function App() {
   return (<>
 	<div className="navbar">
 		<div id="score">{score}</div>
+			<div>{selectedAnswer}</div>
 		<div id="lifes">
 			{Array(lifes).fill(HeartImg).map((heart, i) => <img key={i} src={heart} width={32}/>)}
 		</div>
@@ -67,7 +68,7 @@ export default function App() {
 					<div key={idx} className="answer_group">
 						<span dangerouslySetInnerHTML={{__html: `<label htmlFor="answer${i}">${i}</label>`}}></span>
 
-						<input type="checkbox" value={i} selected={selectedAnswer === i} name={`answer${i}`} onChange={handleSelection}/>
+						<input type="checkbox" value={i} checked={selectedAnswer === i} name={`answer${i}`} onChange={handleSelection}/>
 					</div>
 				))}
 			</div>
