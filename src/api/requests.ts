@@ -15,17 +15,18 @@ export async function getToken():string {
 }
 
 
-export async function fetchOneQuestion(token:string) {
-	const res = await fetch(`${OPENTDB_URL}?amount=1&token${token}`);
-	const {response_code, results }= await res.json();
+export async function fetchQuestions():Promise<Question> {
+	const token = await getToken();
+	const res = await fetch(`${OPENTDB_URL}?amount=10&token${token}`);
+	const {response_code, results, ...rest }= await res.json();
 	
 	if(response_code === 5) {
 		setTimeout(() => {
-			return fetchOneQuestion(token);
+			return fetchQuestions(token);
 		}, 5000);
+	} else {
+		return results;
 	}
-	console.log({results});
-	return results[0];
 }
 
 

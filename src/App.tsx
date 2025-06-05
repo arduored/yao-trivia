@@ -1,12 +1,10 @@
 import { Suspense, useEffect, useState } from 'react'
-import './App.css'
-import { fetchOneQuestion } from "./api/requests.ts"
-import { useOpenTDBToken } from "./hooks/useOpenTDBToken.ts"
+import { useQuestions } from "./hooks/useQuestion.ts"
 import HeartImg from "./assets/heart.svg"
+import './App.css'
 
 export default function App() {
-	const token = useOpenTDBToken() 
-	const [question, setQuestion] = useState<null|Question>(null);
+	const {question, refresh, next} = useQuestions() 
 	const [answers, setAnswers] = useState([]);
 	const [selectedAnswer, setSelectedAnswer] = useState(null);
 	const [score, setScore] = useState(0);
@@ -14,16 +12,8 @@ export default function App() {
 
 	useEffect(() => {
 		if(question) {
-			getAnswers();
-			return
+			getAnswers()
 		}
-		(async() => {
-			const result = await fetchOneQuestion(token);
-
-			if(result) {	
-				setQuestion(result);
-			}
-		})()
 	}, [question])
 
 	function getAnswers() {
@@ -46,46 +36,47 @@ export default function App() {
 	function validate() {
 		if(selectedAnswer === question.correct_answer) {
 			setScore((state) => ++state);
-			setSelectedAnswer(null);
 		} else {
 			setLifes((state) => --state);
-			if(lifes <= 0) {
+			if(lifes < 2) {
 				setScore(0);
-				setSelectedAnswer(null);
 				setLifes(3);
 				alert("You lost!");
 			}
 		}
-			setQuestion(null);
+
+		setSelectedAnswer(null);
+		next();
 	}
 
-  return (<Suspense fallback={ <div>loading ... </div>}>
-	<div class="navbar">
+  return (<>
+	<div className="navbar">
 		<div id="score">{score}</div>
+			<div>{selectedAnswer}</div>
 		<div id="lifes">
 			{Array(lifes).fill(HeartImg).map((heart, i) => <img key={i} src={heart} width={32}/>)}
 		</div>
 	</div>
-	<div className="card">
-		{question ? <div>
+
+	<Suspense fallback={ <div>loading ... </div>}>
+		{question && <div className="card">
 			<h4>{question.category} - {question.difficulty}</h4>
 			<div dangerouslySetInnerHTML={{__html: `<h2>${question.question}</h2>`}} />
 			
 			 <div className="answers">
-				{answers.map((i, idx) =>(<div key={idx} className="answer_group">
+				{answers.map((i, idx) =>(
+					<div key={idx} className="answer_group">
+						<span dangerouslySetInnerHTML={{__html: `<label htmlFor="answer${i}">${i}</label>`}}></span>
 
-					<label htmlFor={`answer${i}`}>{i}</label>
-					<div>
-						<input type="checkbox" value={i} name={`answer${i}`} onChange={handleSelection}/>
+						<input type="checkbox" value={i} checked={selectedAnswer === i} name={`answer${i}`} onChange={handleSelection}/>
 					</div>
-				</div>))}
+				))}
 			</div>
 
 			<div id="actions">
 				<button onClick={validate}>Validate</button>
 			</div>
-		</div> : <div> loading...</div>}
-	</div>
+		</div>}
 	</Suspense>
-  )
+</>)
 }
