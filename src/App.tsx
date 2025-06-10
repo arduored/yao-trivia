@@ -1,45 +1,17 @@
-import { Suspense, useEffect, useState, use } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { fetchQuestions } from "./api/requests.ts"
 import { useOpenTDBToken } from "./hooks/useOpenTDBToken.ts"
-import { useIndexedDB } from "./hooks/useIndexedDB.ts"
-import { useIP} from "./hooks/useIP.ts"
+import { useQuestions } from "./hooks/useQuestion.ts"
 import HeartImg from "./assets/heart.svg"
 import './App.css'
 
 export default function App() {
-	const ip = useIP()
 	const token = useOpenTDBToken() 
-	const {db, add, get} = useIndexedDB();
-
-	const [question, setQuestion] = useState<null|Question>(null);
+	const {question, refresh, next} = useQuestions();
 	const [answers, setAnswers] = useState([]);
 	const [selectedAnswer, setSelectedAnswer] = useState(null);
 	const [score, setScore] = useState(0);
 	const [lifes, setLifes] = useState(3);
-	const [displayWelcomeBack, setDisplayWelcomeBack] = useState(false);
-	const [lastScore, setLastScore] = useState<number |null>(null);
-	
-	useEffect(() => {
-		if(!ip || !db) return;
-
-		const alreadyKnownPlayer = get(ip)
-		if(alreadyKnownPlayer){
-			const now = Date.now()
-			let mostRecent = null
-			alreadyKnownPlayer.sessions.forEach((session) => {
-				const sessionTS = new Date(session.date).gettime()
-				if(!mostRecent){
-					mostRecent = session
-				} else if(new Date(mostRecent.date).getTime() < sessionTS){
-					mostRecent = session
-				} 
-				
-			})
-			console.log({mosteRecent})
-			setLastScore(mostRecent.score)
-			setDisplayWelcomeBack(true)
-		}
-	}, [ip, db])
 
 	useEffect(() => {
 		if(question) {
@@ -49,9 +21,6 @@ export default function App() {
 		(async() => {
 			const result = await fetchQuestions(token);
 
-			if(result) {	
-				setQuestion(result[0]);
-			}
 		})()
 	}, [question])
 
@@ -79,22 +48,16 @@ export default function App() {
 		} else {
 			setLifes((state) => --state);
 			if(lifes <= 1) {
-				add({ip, sessions: [{score, date: new Date() }]})
-
 				setScore(0);
-				setSelectedAnswer(null);
 				setLifes(3);
 				alert("You lost!");
 			}
 		}
-			setQuestion(null);
+		setSelectedAnswer(null);
+		next()
 	}
 
   return (<Suspense fallback={ <div>loading ... </div>}>
-	{displayWelcomeBack && <div>
-		<h1>Welcome Back!</h1>
-		<h3>Your last score was : {lastScore}</h3>
-	</div>}
 	<div className="navbar">
 		<div id="score">{score}</div>
 		<div id="lifes">
@@ -119,7 +82,6 @@ export default function App() {
 
 			<div id="actions">
 				<button onClick={validate}>Validate</button>
-				<button onClick={() => add({ip:"test", score})}>Save</button>
 			</div>
 		</div> 
 			:
