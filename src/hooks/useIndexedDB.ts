@@ -50,14 +50,19 @@ export function useIndexedDB() {
 		}
 	}
 
-	function get(key: string) {
-		const dbObj = getObjectStore('readonly')
-		const objRequest = dbObj.get(key);
+	async function get(key: string):Promise<ScopreHistory> {
+		return new Promise((resolve, reject) => {
+			const dbObj = getObjectStore('readonly')
+			const objRequest = dbObj.get(key);
 
-		objRequest.onsuccess = (event) => {
-			console.log({result: objRequest.result})
-			return objRequest.result
-		}
+			objRequest.onsuccess = (event) => {
+				resolve(objRequest.result)
+			}
+
+			objRequest.onerror = (event) => {
+				reject("cannot retrieve the data")
+			}
+		})
 	}
 
 	return {db, add, get}
