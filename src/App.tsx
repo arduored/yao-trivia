@@ -4,25 +4,20 @@ import { useOpenTDBToken } from "./hooks/useOpenTDBToken.ts"
 import { useQuestions } from "./hooks/useQuestion.ts"
 import { useIndexedDB } from "./hooks/useIndexedDB.ts"
 import { useIP} from "./hooks/useIP.ts"
+import { useLastScore } from "./hooks/useLastScore.ts"
+import { findNearestDateFrom } from "./helpers/date.ts"
 import HeartImg from "./assets/heart.svg"
 import './App.css'
 
 export default function App() {
 	const ip = useIP()
 	const {question, refresh, next} = useQuestions();
-	const {db, add, get} = useIndexedDB();
+	const { db, add } = useIndexedDB();
+    const lastScore = useLastScore(ip, db)
 	const [answers, setAnswers] = useState([]);
 	const [selectedAnswer, setSelectedAnswer] = useState(null);
 	const [score, setScore] = useState(0);
 	const [lifes, setLifes] = useState(3);
-
-	useEffect(() => {
-		if(ip && db) {
-			get(ip).then((res) => {
-				console.log({res});
-			});
-		}
-	}, [ip, db])
 
 	useEffect(() => {
 		if(question) {
@@ -72,6 +67,11 @@ export default function App() {
 	}
 
   return (<Suspense fallback={ <div>loading ... </div>}>
+        <div>
+            {lastScore && (<div>
+                <h4>Your last score was {lastScore}</h4>
+            </div>)}
+        </div>
 	<div className="navbar">
 		<div id="score">{score}</div>
 		<div id="lifes">
